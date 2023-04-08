@@ -1,6 +1,13 @@
-import { Body, Controller, Get, Param, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { Auth } from 'src/auth/decorators/auth.decorator';
-import { RefreshTokenDto } from 'src/auth/dto/refreshToken.dto';
 import { User } from './decorators/user.decorator';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { UserService } from './user.service';
@@ -9,7 +16,6 @@ import { idValidationPipe } from 'src/pipes/id.validation.pipe';
 @Controller('users')
 export class UserController {
   constructor(private readonly UserService: UserService) {}
-
   @Auth('user')
   @Get('profile')
   async getProfile(@User('_id') _id: string) {
@@ -20,9 +26,13 @@ export class UserController {
   async updateProfile(@User('_id') _id: string, @Body() dto: UpdateUserDto) {
     return this.UserService.updateProfile(_id, dto);
   }
+  @Auth('admin')
+  @Get()
+  async getAllUsers(@Query('searchTerm') searchTerm?: string) {
+    return this.UserService.getAll(searchTerm);
+  }
   @Put(':id')
   @Auth('admin')
-  @Put('profile')
   async updateUser(
     @Param('id', idValidationPipe) id: string,
     @Body() dto: UpdateUserDto,
@@ -35,8 +45,8 @@ export class UserController {
     return this.UserService.getCount();
   }
   @Auth('admin')
-  @Get('count')
-  async getAll() {
-    return this.UserService.getCount();
+  @Delete(':id')
+  async deleteUser(@Param('id', idValidationPipe) id: string) {
+    return this.UserService.delete(id);
   }
 }
